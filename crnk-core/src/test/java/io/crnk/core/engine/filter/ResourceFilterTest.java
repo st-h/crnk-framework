@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.crnk.core.CoreTestContainer;
+import io.crnk.core.CoreTestModule;
 import io.crnk.core.engine.dispatcher.Response;
 import io.crnk.core.engine.document.Document;
 import io.crnk.core.engine.document.Resource;
@@ -50,7 +51,7 @@ public class ResourceFilterTest {
 		filterModule.addResourceFilter(filter);
 
 		container = new CoreTestContainer();
-		container.setDefaultPackage();
+		container.addModule(new CoreTestModule());
 		container.addModule(filterModule);
 		container.boot();
 	}

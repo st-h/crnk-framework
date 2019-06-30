@@ -1,6 +1,7 @@
 package io.crnk.core.engine.filter;
 
 import io.crnk.core.CoreTestContainer;
+import io.crnk.core.CoreTestModule;
 import io.crnk.core.engine.dispatcher.RepositoryRequestSpec;
 import io.crnk.core.engine.http.HttpMethod;
 import io.crnk.core.engine.information.resource.ResourceField;
@@ -70,7 +71,7 @@ public class RepositoryFilterTest {
         filterModule.addRepositoryFilter(filter);
 
         container = new CoreTestContainer();
-        container.setDefaultPackage();
+        container.addModule(new CoreTestModule());
         container.addModule(filterModule);
         container.boot();
 

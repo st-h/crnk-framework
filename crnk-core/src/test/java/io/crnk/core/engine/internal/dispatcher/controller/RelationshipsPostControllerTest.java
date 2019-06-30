@@ -22,12 +22,13 @@ import io.crnk.core.queryspec.QuerySpec;
 import io.crnk.core.repository.ResourceRepository;
 import io.crnk.core.resource.annotations.JsonApiResource;
 import io.crnk.core.utils.Nullable;
-import io.crnk.legacy.queryParams.QueryParams;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -144,7 +145,9 @@ public class RelationshipsPostControllerTest extends ControllerTestBase {
 
         // THEN
         TaskToProjectRepository taskToProjectRepository = new TaskToProjectRepository();
-        Project project = taskToProjectRepository.findOneTarget(taskId, "project", new QueryParams());
+        Map<Long, Project> map = taskToProjectRepository.findOneRelations(Arrays.asList(taskId), "project", new QuerySpec(Project.class));
+        Assert.assertEquals(1, map.size());
+        Project project = map.get(projectId);
         assertThat(project.getId()).isEqualTo(projectId);
 
         ResourceIdentifier projectResourceId = new ResourceIdentifier(projectId.toString(), "projects");

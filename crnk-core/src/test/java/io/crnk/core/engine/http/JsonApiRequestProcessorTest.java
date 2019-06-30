@@ -2,6 +2,7 @@ package io.crnk.core.engine.http;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.crnk.core.CoreTestContainer;
+import io.crnk.core.CoreTestModule;
 import io.crnk.core.engine.document.Document;
 import io.crnk.core.engine.document.ErrorData;
 import io.crnk.core.engine.document.Resource;
@@ -15,7 +16,6 @@ import io.crnk.core.mock.repository.TaskRepository;
 import io.crnk.core.module.Module;
 import io.crnk.core.queryspec.QuerySpec;
 import io.crnk.core.repository.response.JsonApiResponse;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,10 +40,8 @@ public class JsonApiRequestProcessorTest {
 
     @Before
     public void setup() {
-        TaskRepository.clear();
-
         container = new CoreTestContainer();
-        container.setDefaultPackage();
+        container.addModule(new CoreTestModule());
         container.addModule(new Module() {
             @Override
             public String getModuleName() {
@@ -69,11 +67,6 @@ public class JsonApiRequestProcessorTest {
 
         requestContextBase = container.getRequestContextBase();
         requestContext = container.getRequestContext();
-    }
-
-    @After
-    public void teardown() {
-        TaskRepository.clear();
     }
 
     @Test

@@ -1,6 +1,7 @@
 package io.crnk.core.repository.forward;
 
 import io.crnk.core.CoreTestContainer;
+import io.crnk.core.CoreTestModule;
 import io.crnk.core.engine.internal.utils.CoreClassTestUtils;
 import io.crnk.core.engine.internal.utils.MultivaluedMap;
 import io.crnk.core.engine.registry.RegistryEntry;
@@ -62,7 +63,7 @@ public class OwnerFowardingRelationshipRepositoryTest {
 	@Before
 	public void setup() {
 		CoreTestContainer container = new CoreTestContainer();
-		container.setDefaultPackage();
+		container.addModule(new CoreTestModule());
 		container.boot();
 
 		resourceRegistry = container.getResourceRegistry();

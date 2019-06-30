@@ -22,21 +22,18 @@ import io.crnk.core.engine.internal.repository.ResourceRepositoryAdapter;
 import io.crnk.core.engine.internal.utils.PreconditionUtil;
 import io.crnk.core.engine.registry.RegistryEntry;
 import io.crnk.core.engine.registry.RegistryEntryBuilder;
-import io.crnk.core.engine.registry.ResourceEntry;
 import io.crnk.core.engine.registry.ResourceRegistryAware;
-import io.crnk.core.engine.registry.ResponseRelationshipEntry;
 import io.crnk.core.exception.ResourceFieldNotFoundException;
 import io.crnk.core.module.ModuleRegistry;
 import io.crnk.core.module.internal.DefaultRepositoryInformationProviderContext;
+import io.crnk.core.repository.MatchedRelationshipRepository;
 import io.crnk.core.repository.RelationshipMatcher;
+import io.crnk.core.repository.ResourceRepository;
 import io.crnk.core.repository.decorate.RepositoryDecoratorFactory;
 import io.crnk.core.repository.foward.ForwardingDirection;
 import io.crnk.core.repository.foward.ForwardingRelationshipRepository;
 import io.crnk.core.resource.annotations.LookupIncludeBehavior;
 import io.crnk.core.resource.annotations.RelationshipRepositoryBehavior;
-import io.crnk.legacy.internal.DirectResponseRelationshipEntry;
-import io.crnk.legacy.internal.DirectResponseResourceEntry;
-import io.crnk.legacy.registry.RepositoryInstanceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +72,7 @@ public class DefaultRegistryEntryBuilder implements RegistryEntryBuilder {
 
     class DefaultResourceRepository implements ResourceRepositoryEntryBuilder {
 
-        private Object instance;
+        private ResourceRepository instance;
 
         private InformationBuilder.ResourceRepositoryInformationBuilder information;
 
@@ -89,7 +86,7 @@ public class DefaultRegistryEntryBuilder implements RegistryEntryBuilder {
         }
 
         @Override
-        public void instance(Object instance) {
+        public void instance(ResourceRepository instance) {
             this.instance = instance;
         }
     }
@@ -114,13 +111,13 @@ public class DefaultRegistryEntryBuilder implements RegistryEntryBuilder {
         }
 
         @Override
-        public void instance(Object instance) {
+        public void instance(MatchedRelationshipRepository instance) {
             this.instance = instance;
         }
     }
 
     @Override
-    public void fromImplementation(Object repository) {
+    public void fromImplementation(ResourceRepository repository) {
         RepositoryInformationProvider repositoryInformationBuilder = moduleRegistry.getRepositoryInformationBuilder();
 
         RepositoryInformationProviderContext builderContext = new DefaultRepositoryInformationProviderContext(moduleRegistry);
@@ -317,21 +314,12 @@ public class DefaultRegistryEntryBuilder implements RegistryEntryBuilder {
 
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private ResourceEntry buildResourceRepository(ResourceInformation resourceInformation) {
+    private Object buildResourceRepository(ResourceInformation resourceInformation) {
         resourceRepository.information().setResourceInformation(resourceInformation);
         ResourceRepositoryInformation repositoryInformation = resourceRepository.information().build();
 
         Object instance = resourceRepository.instance;
-        final Object decoratedRepository = decorateRepository(instance);
-        RepositoryInstanceBuilder repositoryInstanceBuilder = new RepositoryInstanceBuilder(null, instance.getClass()) {
-
-            @Override
-            public Object buildRepository() {
-                return decoratedRepository;
-            }
-        };
-
-        return new DirectResponseResourceEntry(repositoryInstanceBuilder, repositoryInformation);
+        return decorateRepository(instance);
     }
 
     private MatchedRelationship setupForwardingRepository(ResourceField relationshipField) {
@@ -441,23 +429,6 @@ public class DefaultRegistryEntryBuilder implements RegistryEntryBuilder {
             return relRepository.toString();
         }
 
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        private ResponseRelationshipEntry getLegacyEntry() {
-
-            final Object decoratedRepository = decorateRepository(relRepository);
-            RepositoryInstanceBuilder<Object> relationshipInstanceBuilder =
-                    new RepositoryInstanceBuilder<Object>(null, (Class) relRepository.getClass()) {
-
-                        @Override
-                        public Object buildRepository() {
-                            return decoratedRepository;
-                        }
-                    };
-
-
-            return new DirectResponseRelationshipEntry(relationshipInstanceBuilder);
-        }
-
         private RelationshipRepositoryAdapter getAdapter() {
             final Object decoratedRepository = decorateRepository(relRepository);
             List<RepositoryAdapterFactory> adapterFactories = moduleRegistry.getRepositoryAdapterFactories();
@@ -490,8 +461,8 @@ public class DefaultRegistryEntryBuilder implements RegistryEntryBuilder {
         resourceRepository.information().setResourceInformation(resourceInformation);
         ResourceRepositoryInformation repositoryInformation = resourceRepository.information().build();
 
-        Object instance = resourceRepository.instance;
-        final Object decoratedRepository = decorateRepository(instance);
+        ResourceRepository instance = resourceRepository.instance;
+        final ResourceRepository decoratedRepository = (ResourceRepository) decorateRepository(instance);
         List<RepositoryAdapterFactory> adapterFactories = moduleRegistry.getRepositoryAdapterFactories();
         ResourceRepositoryAdapter adapter = null;
         for (RepositoryAdapterFactory adapterFactory : adapterFactories) {

@@ -1,6 +1,7 @@
 package io.crnk.core.repository.forward;
 
 import io.crnk.core.CoreTestContainer;
+import io.crnk.core.CoreTestModule;
 import io.crnk.core.engine.http.HttpRequestContextProvider;
 import io.crnk.core.engine.registry.ResourceRegistry;
 import io.crnk.core.mock.models.Project;
@@ -42,7 +43,7 @@ public class OppositeFowardingRelationshipRepositoryTest {
         MockRepositoryUtil.clear();
 
         CoreTestContainer container = new CoreTestContainer();
-        container.setDefaultPackage();
+        container.addModule(new CoreTestModule());
         container.boot();
         resourceRegistry = container.getResourceRegistry();
 

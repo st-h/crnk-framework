@@ -1,13 +1,5 @@
 package io.crnk.core.boot;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.crnk.core.engine.error.ExceptionMapper;
@@ -56,7 +48,7 @@ import io.crnk.core.module.Module;
 import io.crnk.core.module.ModuleRegistry;
 import io.crnk.core.module.SimpleModule;
 import io.crnk.core.module.discovery.DefaultServiceDiscoveryFactory;
-import io.crnk.core.module.discovery.FallbackServiceDiscoveryFactory;
+import io.crnk.core.module.discovery.EmptyServiceDiscovery;
 import io.crnk.core.module.discovery.ServiceDiscovery;
 import io.crnk.core.module.discovery.ServiceDiscoveryFactory;
 import io.crnk.core.queryspec.internal.QuerySpecAdapterBuilder;
@@ -68,10 +60,16 @@ import io.crnk.core.queryspec.pagingspec.OffsetLimitPagingBehavior;
 import io.crnk.core.queryspec.pagingspec.PagingBehavior;
 import io.crnk.core.repository.Repository;
 import io.crnk.core.repository.decorate.RepositoryDecoratorFactory;
-import io.crnk.legacy.locator.JsonServiceLocator;
-import io.crnk.legacy.locator.SampleJsonServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Facilitates the startup of Crnk in various environments (Spring, CDI,
@@ -90,8 +88,6 @@ public class CrnkBoot {
 
     private boolean configured;
 
-    private JsonServiceLocator serviceLocator = new SampleJsonServiceLocator();
-
     private ResourceRegistry resourceRegistry;
 
     private HttpRequestDispatcherImpl requestDispatcher;
@@ -100,7 +96,7 @@ public class CrnkBoot {
 
     private ServiceDiscoveryFactory serviceDiscoveryFactory = new DefaultServiceDiscoveryFactory();
 
-    private ServiceDiscovery serviceDiscovery;
+    private ServiceDiscovery serviceDiscovery = new EmptyServiceDiscovery();
 
     private DocumentMapper documentMapper;
 
@@ -142,16 +138,6 @@ public class CrnkBoot {
     }
 
     /**
-     * Sets a JsonServiceLocator. No longer necessary if a ServiceDiscovery
-     * implementation is in place.
-     */
-    public void setServiceLocator(JsonServiceLocator serviceLocator) {
-        checkNotConfiguredYet();
-        this.serviceLocator = serviceLocator;
-    }
-
-
-    /**
      * Adds a module. No longer necessary if a ServiceDiscovery implementation
      * is in place.
      */
@@ -189,21 +175,10 @@ public class CrnkBoot {
         moduleRegistry.setPropertiesProvider(propertiesProvider);
 
         setupServiceUrlProvider();
-        setupServiceDiscovery();
         setupQuerySpecUrlMapper();
         bootDiscovery();
 
         LOGGER.debug("completed setup");
-    }
-
-    private void setupServiceDiscovery() {
-        if (serviceDiscovery == null) {
-            // revert to reflection-based approach if no ServiceDiscovery is
-            // found
-            FallbackServiceDiscoveryFactory fallback =
-                    new FallbackServiceDiscoveryFactory(serviceDiscoveryFactory, serviceLocator, propertiesProvider);
-            setServiceDiscovery(fallback.getInstance());
-        }
     }
 
     private void bootDiscovery() {
@@ -561,8 +536,6 @@ public class CrnkBoot {
 
     private void setupQuerySpecUrlMapper() {
         if (moduleRegistry.getUrlMapper() == null) {
-            setupServiceDiscovery();
-
             List<QuerySpecUrlMapper> list = serviceDiscovery.getInstancesByType(QuerySpecUrlMapper.class);
             if (list.isEmpty()) {
                 moduleRegistry.setUrlMapper(new DefaultQuerySpecUrlMapper());
@@ -596,8 +569,6 @@ public class CrnkBoot {
     }
 
     private void setupPagingBehavior() {
-        setupServiceDiscovery();
-
         moduleRegistry.addAllPagingBehaviors(serviceDiscovery.getInstancesByType(PagingBehavior.class));
 
         if (moduleRegistry.getPagingBehaviors().isEmpty()) {

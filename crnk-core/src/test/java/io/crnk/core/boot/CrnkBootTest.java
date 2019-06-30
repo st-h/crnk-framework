@@ -2,6 +2,7 @@ package io.crnk.core.boot;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.crnk.core.CoreTestModule;
 import io.crnk.core.engine.dispatcher.RequestDispatcher;
 import io.crnk.core.engine.document.Document;
 import io.crnk.core.engine.error.ErrorResponse;
@@ -19,12 +20,10 @@ import io.crnk.core.engine.result.Result;
 import io.crnk.core.engine.security.SecurityProvider;
 import io.crnk.core.engine.url.ConstantServiceUrlProvider;
 import io.crnk.core.engine.url.ServiceUrlProvider;
-import io.crnk.core.mock.MockConstants;
 import io.crnk.core.mock.models.Task;
 import io.crnk.core.module.Module;
 import io.crnk.core.module.ModuleRegistry;
 import io.crnk.core.module.SimpleModule;
-import io.crnk.core.module.discovery.ReflectionsServiceDiscovery;
 import io.crnk.core.module.discovery.ServiceDiscovery;
 import io.crnk.core.module.discovery.ServiceDiscoveryFactory;
 import io.crnk.core.queryspec.QuerySpec;
@@ -33,7 +32,6 @@ import io.crnk.core.queryspec.mapper.DefaultQuerySpecUrlMapper;
 import io.crnk.core.queryspec.pagingspec.OffsetLimitPagingBehavior;
 import io.crnk.core.repository.decorate.RepositoryDecoratorFactory;
 import io.crnk.core.repository.response.JsonApiResponse;
-import io.crnk.legacy.locator.JsonServiceLocator;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -85,21 +83,6 @@ public class CrnkBootTest {
         ServiceDiscovery serviceDiscovery = mock(ServiceDiscovery.class);
         boot.setServiceDiscovery(serviceDiscovery);
         Assert.assertSame(serviceDiscovery, boot.getServiceDiscovery());
-    }
-
-    @Test
-    public void setServiceLocator() {
-        JsonServiceLocator locator = mock(JsonServiceLocator.class);
-        PropertiesProvider propertiesProvider = mock(PropertiesProvider.class);
-        Mockito.when(propertiesProvider.getProperty(eq(CrnkProperties.RESOURCE_SEARCH_PACKAGE))).thenReturn("a.b.c");
-        CrnkBoot boot = new CrnkBoot();
-        boot.setPropertiesProvider(propertiesProvider);
-        boot.setServiceLocator(locator);
-        boot.setServiceDiscoveryFactory(mock(ServiceDiscoveryFactory.class));
-        boot.boot();
-
-        ReflectionsServiceDiscovery serviceDiscovery = (ReflectionsServiceDiscovery) boot.getServiceDiscovery();
-        Assert.assertSame(locator, serviceDiscovery.getLocator());
     }
 
     @Test
@@ -262,7 +245,7 @@ public class CrnkBootTest {
                 return "http://127.0.0.1";
             }
         });
-        boot.setServiceDiscovery(new ReflectionsServiceDiscovery(MockConstants.TEST_MODELS_PACKAGE));
+        boot.addModule(new CoreTestModule());
         boot.addModule(new SimpleModule("test"));
         boot.boot();
 
@@ -295,7 +278,7 @@ public class CrnkBootTest {
     @Test
     public void testSetServerInfo() {
         CrnkBoot boot = new CrnkBoot();
-        boot.setServiceDiscovery(new ReflectionsServiceDiscovery(MockConstants.TEST_MODELS_PACKAGE));
+        boot.addModule(new CoreTestModule());
         boot.putServerInfo("a", "b");
         boot.boot();
 
@@ -315,7 +298,7 @@ public class CrnkBootTest {
     @Test
     public void testEmptyServerInfo() {
         CrnkBoot boot = new CrnkBoot();
-        boot.setServiceDiscovery(new ReflectionsServiceDiscovery(MockConstants.TEST_MODELS_PACKAGE));
+        boot.addModule(new CoreTestModule());
         boot.boot();
 
         DocumentMapper documentMapper = boot.getDocumentMapper();

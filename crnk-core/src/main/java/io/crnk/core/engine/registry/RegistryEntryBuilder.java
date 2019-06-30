@@ -1,34 +1,36 @@
 package io.crnk.core.engine.registry;
 
 import io.crnk.core.engine.information.InformationBuilder;
+import io.crnk.core.repository.MatchedRelationshipRepository;
+import io.crnk.core.repository.ResourceRepository;
 
 public interface RegistryEntryBuilder {
 
-	/**
-	 * Builds up the entry from the provided implementation
-	 */
-	void fromImplementation(Object repository);
+    /**
+     * Builds up the entry from the provided implementation
+     */
+    void fromImplementation(ResourceRepository repository);
 
-	interface ResourceRepositoryEntryBuilder {
+    interface ResourceRepositoryEntryBuilder {
 
-		InformationBuilder.ResourceRepositoryInformationBuilder information();
+        InformationBuilder.ResourceRepositoryInformationBuilder information();
 
-		void instance(Object repository);
-	}
+        void instance(ResourceRepository repository);
+    }
 
-	interface RelationshipRepositoryEntryBuilder {
+    interface RelationshipRepositoryEntryBuilder {
 
-		InformationBuilder.RelationshipRepositoryInformationBuilder information();
+        InformationBuilder.RelationshipRepositoryInformationBuilder information();
 
-		void instance(Object repository);
-	}
+        void instance(MatchedRelationshipRepository repository);
+    }
 
-	ResourceRepositoryEntryBuilder resourceRepository();
+    ResourceRepositoryEntryBuilder resourceRepository();
 
-	InformationBuilder.ResourceInformationBuilder resource();
+    InformationBuilder.ResourceInformationBuilder resource();
 
-	RelationshipRepositoryEntryBuilder relationshipRepositoryForField(String fieldName);
+    RelationshipRepositoryEntryBuilder relationshipRepositoryForField(String fieldName);
 
-	RegistryEntry build();
+    RegistryEntry build();
 
 }
